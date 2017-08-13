@@ -15,12 +15,10 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 // version 0.3.0 has support data in hex
 Version version = new Version(0, 3, 0);
 
-const nullModemPathA = "/null/a";
-const nullModemPathB = "/null/b";
-SerialServerConnection nullModemAChannel;
-int nullModemAConnectionId;
-SerialServerConnection nullModemBChannel;
-int nullModemBConnectionId;
+SerialServerConnection masterChannel;
+int masterConnectionId;
+SerialServerConnection slaveChannel;
+int slaveConnectionId;
 
 const errorCodeInvalidPath = 1;
 const errorCodePortBusy = 2;
@@ -100,12 +98,12 @@ class SerialServerConnection {
 
               var list = [];
               list.add((new DeviceInfo()
-                    ..displayName = "Null Model a->b"
-                    ..path = nullModemPathA)
+                    ..displayName = "Master"
+                    ..path = serialWssSimMasterPortPath)
                   .toMap());
               list.add((new DeviceInfo()
-                    ..displayName = "Null Model b->a"
-                    ..path = nullModemPathB)
+                    ..displayName = "Slave"
+                    ..path = serialWssSimSlavePortPath)
                   .toMap());
               Response response = new Response(message.id, list);
               sendMessage(response);
@@ -129,12 +127,12 @@ class SerialServerConnection {
 
               int connectionId = serialServer._generateNextId();
 
-              if (path == nullModemPathA) {
-                nullModemAChannel = this;
-                nullModemAConnectionId = connectionId;
-              } else if (path == nullModemPathB) {
-                nullModemBChannel = this;
-                nullModemBConnectionId = connectionId;
+              if (path == serialWssSimMasterPortPath) {
+                masterChannel = this;
+                masterConnectionId = connectionId;
+              } else if (path == serialWssSimSlavePortPath) {
+                slaveChannel = this;
+                slaveConnectionId = connectionId;
               } else {
                 sendMessage(new ErrorResponse(message.id,
                     new Error(errorCodeInvalidPath, "invalid path: $path")));
@@ -165,21 +163,19 @@ class SerialServerConnection {
 
               if (_checkConnectionId(connectionId)) {
                 // send to other null modem?
-                if (nullModemAChannel == this &&
-                    nullModemAConnectionId == connectionId) {
-                  if (nullModemBChannel != null) {
-                    nullModemBChannel.sendMessage(new Notification(
-                        methodReceive, {
-                      'connectionId': nullModemBConnectionId,
+                if (masterChannel == this &&
+                    masterConnectionId == connectionId) {
+                  if (slaveChannel != null) {
+                    slaveChannel.sendMessage(new Notification(methodReceive, {
+                      'connectionId': slaveConnectionId,
                       'data': message.params['data']
                     }));
                   }
-                } else if (nullModemBChannel == this &&
-                    nullModemBConnectionId == connectionId) {
-                  if (nullModemAChannel != null) {
-                    nullModemAChannel.sendMessage(new Notification(
-                        methodReceive, {
-                      'connectionId': nullModemAConnectionId,
+                } else if (slaveChannel == this &&
+                    slaveConnectionId == connectionId) {
+                  if (masterChannel != null) {
+                    masterChannel.sendMessage(new Notification(methodReceive, {
+                      'connectionId': masterConnectionId,
                       'data': message.params['data']
                     }));
                   }
@@ -211,10 +207,10 @@ class SerialServerConnection {
   void _markPortDisconnected(int connectionId) {
     String path = connectedPaths[connectionId];
     print('closing connection $connectionId $path');
-    if (path == nullModemPathA) {
-      nullModemAChannel = null;
-    } else if (path == nullModemPathA) {
-      nullModemBChannel = null;
+    if (path == serialWssSimMasterPortPath) {
+      masterChannel = null;
+    } else if (path == serialWssSimSlavePortPath) {
+      slaveChannel = null;
     }
     if (path != null) {
       connectedPaths.remove(connectionId);

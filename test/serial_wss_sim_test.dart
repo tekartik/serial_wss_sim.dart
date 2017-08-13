@@ -24,40 +24,46 @@ void main() {
       await server.close();
     });
 
-    test('service', () async {
+    test('master_slave', () async {
       var server = await SerialServer.start(port: 0);
       int port = server.port;
-      await server.close();
 
       SerialWssClientService service = new SerialWssClientService(
           ioWebSocketChannelFactory,
-          retryDelay: new Duration(milliseconds: 300),
           url: getSerialWssUrl(port: port));
       service.start();
-      await Future.wait([
-        () async {
-          for (int i = 0; i < 50; i++) {
-            await sleep(50);
-            print("connected: ${service.isConnected}");
-          }
-        }(),
-        () async {
-          await sleep(500);
-          expect(service.isConnected, isFalse);
-          server = await SerialServer.start(port: port);
-          await sleep(500);
-          expect(service.isConnected, isTrue);
-          print("closing server");
-          await server.close();
-          print("server closed");
-          await sleep(500);
-          expect(service.isConnected, isFalse);
-          server = await SerialServer.start(port: port);
-          await sleep(500);
-          expect(service.isConnected, isTrue);
-          await server.close();
-        }(),
-      ]);
+
+      Completer masterReceiveCompleter = new Completer();
+      Completer slaveReceiveCompleter = new Completer();
+
+      service.connected.listen((bool connected) async {
+        if (connected) {
+          var masterChannel =
+              await service.serial.createChannel(serialWssSimMasterPortPath);
+          var slaveChannel =
+              await service.serial.createChannel(serialWssSimSlavePortPath);
+
+          masterChannel.sink.add([1, 2, 3, 4]);
+          slaveChannel.sink.add([5, 6, 7, 8]);
+
+          masterChannel.stream.listen((List<int> data) {
+            expect(data, [5, 6, 7, 8]);
+            print(data);
+            masterReceiveCompleter.complete();
+          });
+
+          slaveChannel.stream.listen((List<int> data) {
+            expect(data, [1, 2, 3, 4]);
+            print(data);
+            slaveReceiveCompleter.complete();
+          });
+        }
+      });
+
+      await masterReceiveCompleter.future;
+      await slaveReceiveCompleter.future;
+      //await service.stop();
+      await server.close();
     });
   });
 }
