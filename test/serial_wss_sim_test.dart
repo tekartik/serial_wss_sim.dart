@@ -1,9 +1,9 @@
 // Copyright (c) 2017, alex. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
-
+@TestOn("vm")
 import 'dart:async';
-import 'package:serial_wss_sim/serial_wss_sim.dart';
 import 'package:tekartik_common_utils/async_utils.dart';
+import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 import 'package:tekartik_serial_wss_client/service/io.dart';

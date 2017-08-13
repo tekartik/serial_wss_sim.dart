@@ -68,7 +68,6 @@ class SerialServerConnection {
       if (!_initReceived) {
         _markChannelDisconnected();
       }
-
     });
     _streamChannel.stream.listen((data) {
       print('recv[$id] $data');
@@ -92,8 +91,7 @@ class SerialServerConnection {
               _clientVersion = params["version"];
               _initReceived = true;
               print("client connected: $_clientName $_clientVersion");
-              sendMessage(
-                  new Response(message.id, true));
+              sendMessage(new Response(message.id, true));
             }
           } else {
             if (message.method == methodGetDevices) {
@@ -102,12 +100,12 @@ class SerialServerConnection {
 
               var list = [];
               list.add((new DeviceInfo()
-                ..displayName = "Null Model a->b"
-                ..path = nullModemPathA)
+                    ..displayName = "Null Model a->b"
+                    ..path = nullModemPathA)
                   .toMap());
               list.add((new DeviceInfo()
-                ..displayName = "Null Model b->a"
-                ..path = nullModemPathB)
+                    ..displayName = "Null Model b->a"
+                    ..path = nullModemPathB)
                   .toMap());
               Response response = new Response(message.id, list);
               sendMessage(response);
@@ -154,7 +152,8 @@ class SerialServerConnection {
                 _markPortDisconnected(connectionId);
                 sendMessage(new Response(message.id, true));
               } else {
-                sendMessage(new ErrorResponse(message.id,
+                sendMessage(new ErrorResponse(
+                    message.id,
                     new Error(
                         errorCodeInvalidId, "invalid id: $connectionId")));
               }
@@ -185,17 +184,18 @@ class SerialServerConnection {
                     }));
                   }
                 }
-                sendMessage(
-                    new Response(message.id, {'bytesSent': 0}));
+                sendMessage(new Response(message.id, {'bytesSent': 0}));
               } else {
-                sendMessage(new ErrorResponse(message.id,
+                sendMessage(new ErrorResponse(
+                    message.id,
                     new Error(
                         errorCodeInvalidId, "invalid id: $connectionId")));
               }
             } else {
-              sendMessage(new ErrorResponse(message.id,
-                  new Error(
-                      errorCodeMethodNotSupported, "method '${message.method}' not supported")));
+              sendMessage(new ErrorResponse(
+                  message.id,
+                  new Error(errorCodeMethodNotSupported,
+                      "method '${message.method}' not supported")));
             }
           }
         }
@@ -285,7 +285,7 @@ class SerialServer {
     httpServer = await shelf_io.serve(handler, address, port);
     serialServer =
         //new SerialServer(await shelf_io.serve(handler, 'localhost', 8988));
-    new SerialServer(httpServer);
+        new SerialServer(httpServer);
     print(
         'Serving at ws://${serialServer.httpServer.address.host}:${serialServer
             .httpServer.port}');
