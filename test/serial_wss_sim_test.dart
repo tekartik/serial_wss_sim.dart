@@ -2,10 +2,10 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 @TestOn("vm")
 import 'dart:async';
-import 'package:tekartik_common_utils/async_utils.dart';
 import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
+import 'package:tekartik_serial_wss_client/message.dart' as swss;
 import 'package:tekartik_serial_wss_client/service/io.dart';
 import 'package:tekartik_serial_wss_client/service/serial_wss_client_service.dart';
 import 'package:test/test.dart';
@@ -62,6 +62,37 @@ void main() {
 
       await masterReceiveCompleter.future;
       await slaveReceiveCompleter.future;
+      //await service.stop();
+      await server.close();
+    });
+
+    test('busy', () async {
+      var server = await SerialServer.start(port: 0);
+      int port = server.port;
+
+      SerialWssClientService service = new SerialWssClientService(
+          ioWebSocketChannelFactory,
+          url: getSerialWssUrl(port: port));
+      service.start();
+
+      Completer completer = new Completer();
+
+      service.connected.listen((bool connected) async {
+        if (connected) {
+          // connect once ok
+          var connectionInfo = await service.serial.connect(serialWssSimMasterPortPath);
+
+          try {
+            print(await service.serial.connect(serialWssSimMasterPortPath));
+            fail("should fail");
+          } on swss.Error catch (e) {
+            expect(e.code, errorCodePortBusy);
+          }
+          completer.complete();
+        }
+      });
+
+      await completer.future;
       //await service.stop();
       await server.close();
     });

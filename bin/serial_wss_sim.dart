@@ -5,7 +5,7 @@ import 'dart:io';
 
 main() async {
   SerialServer serialServer = await SerialServer.start();
-  print("started. [q] [ENTER] to quit");
+  print("started: ${serialServer.deviceInfos}\n[q] [ENTER] to quit");
   StreamSubscription subscription;
   subscription = stdin
       .transform(UTF8.decoder)

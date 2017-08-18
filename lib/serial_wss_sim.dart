@@ -20,12 +20,6 @@ int masterConnectionId;
 SerialServerConnection slaveChannel;
 int slaveConnectionId;
 
-const errorCodeInvalidPath = 1;
-const errorCodePortBusy = 2;
-const errorCodeNotConnected = 3;
-const errorCodeInvalidId = 4;
-const errorCodeMethodNotSupported = 5;
-
 class SerialServerConnection {
   final SerialServer serialServer;
   final int id;
@@ -45,7 +39,9 @@ class SerialServerConnection {
   String _clientVersion;
 
   SerialServerConnection(this.serialServer, this.id, this._streamChannel) {
-    print('connected');
+    if (SerialServer.debug) {
+      print('[SerialServerConnection] connected');
+    }
     /*
     webSocketChannel.sink.add(JSON.encode({
       "jsonrpc": "2.0",
@@ -68,7 +64,9 @@ class SerialServerConnection {
       }
     });
     _streamChannel.stream.listen((data) {
-      print('recv[$id] $data');
+      if (SerialServer.debug) {
+        print('recv[$id] $data');
+      }
       //webSocketChannel.sink.add("echo $message");
       Map<String, dynamic> map;
       try {
@@ -88,23 +86,19 @@ class SerialServerConnection {
               _clientName = params["name"];
               _clientVersion = params["version"];
               _initReceived = true;
-              print("client connected: $_clientName $_clientVersion");
+              if (SerialServer.debug) {
+                print("client connected: $_clientName $_clientVersion");
+              }
               sendMessage(new Response(message.id, true));
             }
           } else {
             if (message.method == methodGetDevices) {
               // send: {jsonrpc: 2.0, id: 1, method: getDevices}
               // recv: {"jsonrpc":"2.0","id":1,"result":[{"path":"/null/a","productId":null,"displayName":"Null Model a->b"},{"path":"/null/b","productId":null,"displayName":"Null Model b->a"}]}
-
               var list = [];
-              list.add((new DeviceInfo()
-                    ..displayName = "Master"
-                    ..path = serialWssSimMasterPortPath)
-                  .toMap());
-              list.add((new DeviceInfo()
-                    ..displayName = "Slave"
-                    ..path = serialWssSimSlavePortPath)
-                  .toMap());
+              for (DeviceInfo deviceInfo in serialServer.deviceInfos) {
+                list.add(deviceInfo.toMap());
+              }
               Response response = new Response(message.id, list);
               sendMessage(response);
             } else if (message.method == methodConnect) {
@@ -199,14 +193,18 @@ class SerialServerConnection {
         print("error receiving $e");
       }
     }, onDone: () {
-      print('socket done [$id]');
+      if (SerialServer.debug) {
+        print('socket done [$id]');
+      }
       _markChannelDisconnected();
     });
   }
 
   void _markPortDisconnected(int connectionId) {
     String path = connectedPaths[connectionId];
-    print('closing connection $connectionId $path');
+    if (SerialServer.debug) {
+      print('closing connection $connectionId $path');
+    }
     if (path == serialWssSimMasterPortPath) {
       masterChannel = null;
     } else if (path == serialWssSimSlavePortPath) {
@@ -232,13 +230,17 @@ class SerialServerConnection {
 
   void sendMessage(Message message) {
     Map msgMap = message.toMap();
-    print("send[$id]: ${msgMap}");
+    if (SerialServer.debug) {
+      print("send[$id]: ${msgMap}");
+    }
     _streamChannel.sink.add(JSON.encode(msgMap));
     //webSocketChannel.sink.done
   }
 
   Future close() async {
-    print("closing channel");
+    if (SerialServer.debug) {
+      print("closing channel");
+    }
     await _streamChannel.sink.close();
   }
 
@@ -248,6 +250,9 @@ class SerialServerConnection {
 }
 
 class SerialServer {
+  // Set to true to get debug logs
+  static bool debug = false;
+
   Map<String, int> _connectedPathIds = {};
 
   int get port => httpServer.port;
@@ -275,22 +280,39 @@ class SerialServer {
           serialServer, ++serialServer.lastId, webSocketChannel);
 
       serialServer.channels.add(serverChannel);
-      print("adding channel: ${serialServer.channels}");
+      if (debug) {
+        print("[SerialServer] adding channel: ${serialServer.channels}");
+      }
     });
 
     httpServer = await shelf_io.serve(handler, address, port);
     serialServer =
         //new SerialServer(await shelf_io.serve(handler, 'localhost', 8988));
         new SerialServer(httpServer);
-    print(
-        'Serving at ws://${serialServer.httpServer.address.host}:${serialServer
-            .httpServer.port}');
+    if (SerialServer.debug) {
+      print(
+          'Serving at ws://${serialServer.httpServer.address
+              .host}:${serialServer
+              .httpServer.port}');
+    }
     return serialServer;
   }
 
+  List<DeviceInfo> get deviceInfos {
+    var list = [];
+    list.add(new DeviceInfo()
+      ..displayName = "Master"
+      ..path = serialWssSimMasterPortPath);
+    list.add(new DeviceInfo()
+      ..displayName = "Slave"
+      ..path = serialWssSimSlavePortPath);
+    return list;
+  }
   close() async {
     await httpServer.close(force: true);
-    print("close channel: ${channels}");
+    if (SerialServer.debug) {
+      print("close channel: ${channels}");
+    }
     List<SerialServerConnection> connections = new List.from(channels);
     for (SerialServerConnection connection in connections) {
       await connection.close();
