@@ -19,3 +19,6 @@ dev_dependencies:
 dependency_overrides:
 #  tekartik_serial_wss_client:
 #     path: ../serial_wss_client.dart
+
+executables:
+  serial_wss_sim:
