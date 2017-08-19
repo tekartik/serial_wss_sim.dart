@@ -13,7 +13,8 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 // version 0.1.0 as info
 // version 0.2.0 has init support
 // version 0.3.0 has support data in hex
-Version version = new Version(0, 3, 0);
+// version 0.5.0 has busy support on real server
+Version version = new Version(0, 5, 0);
 
 SerialServerConnection masterChannel;
 int masterConnectionId;

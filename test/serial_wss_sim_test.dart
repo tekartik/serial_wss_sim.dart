@@ -15,7 +15,7 @@ void main() {
   group('serial_server', () {
     test('start_connect_and_close', () async {
       var server = await SerialServer.start(port: 0);
-      print(server.port);
+      //devPrint(server.port);
 
       String url = "ws://localhost:${server.port}";
       IOWebSocketChannel channel = new IOWebSocketChannel.connect(url);
@@ -36,7 +36,7 @@ void main() {
       Completer masterReceiveCompleter = new Completer();
       Completer slaveReceiveCompleter = new Completer();
 
-      service.connected.listen((bool connected) async {
+      service.onConnected.listen((bool connected) async {
         if (connected) {
           var masterChannel =
               await service.serial.createChannel(serialWssSimMasterPortPath);
@@ -48,13 +48,13 @@ void main() {
 
           masterChannel.stream.listen((List<int> data) {
             expect(data, [5, 6, 7, 8]);
-            print(data);
+            //print(data);
             masterReceiveCompleter.complete();
           });
 
           slaveChannel.stream.listen((List<int> data) {
             expect(data, [1, 2, 3, 4]);
-            print(data);
+            //print(data);
             slaveReceiveCompleter.complete();
           });
         }
@@ -77,10 +77,10 @@ void main() {
 
       Completer completer = new Completer();
 
-      service.connected.listen((bool connected) async {
+      service.onConnected.listen((bool connected) async {
         if (connected) {
           // connect once ok
-          var connectionInfo = await service.serial.connect(serialWssSimMasterPortPath);
+          await service.serial.connect(serialWssSimMasterPortPath);
 
           try {
             print(await service.serial.connect(serialWssSimMasterPortPath));
