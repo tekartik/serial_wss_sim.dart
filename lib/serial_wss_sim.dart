@@ -133,8 +133,11 @@ class SerialServerConnection {
                     new Error(errorCodeInvalidPath, "invalid path: $path")));
                 return;
               }
+              Map connectionInfo = params['options'] ?? {};
+              // copy connection info from options;
+              connectionInfo['connectionId'] = connectionId;
               sendMessage(
-                  new Response(message.id, {'connectionId': connectionId}));
+                  new Response(message.id, connectionInfo));
 
               serialServer._connectedPathIds[path] = connectionId;
               connectedPaths[connectionId] = path;

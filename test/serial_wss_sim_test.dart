@@ -24,6 +24,21 @@ void main() {
       await server.close();
     });
 
+    test('options', () async {
+      var server = await SerialServer.start(port: 0);
+      //devPrint(server.port);
+      SerialWssClientService service = new SerialWssClientService(
+          ioWebSocketChannelFactory,
+          url: getSerialWssUrl(port: server.port));
+      service.start();
+      await service.waitForConnected(true);
+
+      ConnectionOptions options = new ConnectionOptions()..bitrate = 1234;
+      ConnectionInfo info = await service.serial.connect(serialWssSimMasterPortPath, options: options);
+      expect(info.bitrate, 1234);
+      await server.close();
+    });
+
     test('master_slave', () async {
       var server = await SerialServer.start(port: 0);
       int port = server.port;
