@@ -277,7 +277,12 @@ class SerialServer {
   static Future<SerialServer> start(WebSocketChannelServerFactory factory, {address, int port}) async {
     // default port
     port ??= serialWssPortDefault;
-    return new SerialServer._(await factory.serve(address: address, port:port));
+
+    SerialServer serialServer = new SerialServer._(await factory.serve(address: address, port:port));
+    if (debug.on) {
+      print("[SerialServer] serving $serialServer");
+    }
+    return serialServer;
   }
   // get the server url
   String get url => _wsServer.url;
@@ -307,15 +312,17 @@ class SerialServer {
     return list;
   }
 
-  close() async {
+  Future close() async {
     await _wsServer.close();
     if (SerialServer.debug.on) {
-      print("close channel: ${channels}");
+      print("[SerialServer] close channel: ${channels}");
     }
     List<SerialServerConnection> connections = new List.from(channels);
     for (SerialServerConnection connection in connections) {
       await connection.close();
     }
   }
+
+  toString() => "WssSerialSim $url";
 
 }
