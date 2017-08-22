@@ -1,14 +1,13 @@
 // Copyright (c) 2017, alex. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
-import 'dart:io' hide sleep;
 import 'dart:core' hide Error;
+import 'package:tekartik_serial_wss_client/channel/server/web_socket_channel_server.dart';
+import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
 import 'package:tekartik_serial_wss_client/message.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 import 'package:tekartik_test_menu/test_menu_io.dart';
-import 'package:shelf/shelf_io.dart' as shelf_io;
-import 'package:shelf_web_socket/shelf_web_socket.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+
 
 // version 0.1.0 as info
 // version 0.2.0 has init support
@@ -40,7 +39,7 @@ class SerialServerConnection {
   String _clientVersion;
 
   SerialServerConnection(this.serialServer, this.id, this._streamChannel) {
-    if (SerialServer.debug) {
+    if (SerialServer.debug.on) {
       print('[SerialServerConnection] connected');
     }
     /*
@@ -65,7 +64,7 @@ class SerialServerConnection {
       }
     });
     _streamChannel.stream.listen((data) {
-      if (SerialServer.debug) {
+      if (SerialServer.debug.on) {
         print('recv[$id] $data');
       }
       //webSocketChannel.sink.add("echo $message");
@@ -87,7 +86,7 @@ class SerialServerConnection {
               _clientName = params["name"];
               _clientVersion = params["version"];
               _initReceived = true;
-              if (SerialServer.debug) {
+              if (SerialServer.debug.on) {
                 print("client connected: $_clientName $_clientVersion");
               }
               sendMessage(new Response(message.id, true));
@@ -197,7 +196,7 @@ class SerialServerConnection {
         print("error receiving $e");
       }
     }, onDone: () {
-      if (SerialServer.debug) {
+      if (SerialServer.debug.on) {
         print('socket done [$id]');
       }
       _markChannelDisconnected();
@@ -206,7 +205,7 @@ class SerialServerConnection {
 
   void _markPortDisconnected(int connectionId) {
     String path = connectedPaths[connectionId];
-    if (SerialServer.debug) {
+    if (SerialServer.debug.on) {
       print('closing connection $connectionId $path');
     }
     if (path == serialWssSimMasterPortPath) {
@@ -234,7 +233,7 @@ class SerialServerConnection {
 
   void sendMessage(Message message) {
     Map msgMap = message.toMap();
-    if (SerialServer.debug) {
+    if (SerialServer.debug.on) {
       print("send[$id]: ${msgMap}");
     }
     _streamChannel.sink.add(JSON.encode(msgMap));
@@ -242,7 +241,7 @@ class SerialServerConnection {
   }
 
   Future close() async {
-    if (SerialServer.debug) {
+    if (SerialServer.debug.on) {
       print("closing channel");
     }
     await _streamChannel.sink.close();
@@ -253,54 +252,49 @@ class SerialServerConnection {
   }
 }
 
+abstract class SerialServerFactory {
+  Future start({address, int port});
+}
+
 class SerialServer {
   // Set to true to get debug logs
-  static bool debug = false;
+  static DevFlag debug = new DevFlag("SerialService.debug");
 
-  Map<String, int> _connectedPathIds = {};
+  final WebSocketChannelServer _wsServer;
 
-  int get port => httpServer.port;
+  SerialServer._(this._wsServer) {
+    _wsServer.stream.listen((WebSocketChannel webSocketChannel) {
+      SerialServerConnection serverChannel = new SerialServerConnection(
+          this, ++lastId, webSocketChannel);
+
+      channels.add(serverChannel);
+      if (SerialServer.debug.on) {
+        print("[SerialServer] adding channel: ${channels}");
+      }
+    });
+  }
+
+  static Future<SerialServer> start(WebSocketChannelServerFactory factory, {address, int port}) async {
+    // default port
+    port ??= serialWssPortDefault;
+    return new SerialServer._(await factory.serve(address: address, port:port));
+  }
+  // get the server url
+  String get url => _wsServer.url;
+  int get port => _wsServer.port;
+
+
+
+  List<SerialServerConnection> channels = [];
+
 
   int _generateNextId() {
     return ++lastId;
   }
 
   int lastId = 0;
-  final HttpServer httpServer;
 
-  List<SerialServerConnection> channels = [];
-
-  SerialServer(this.httpServer);
-
-  static Future<SerialServer> start({address, int port}) async {
-    port ??= serialWssPortDefault;
-    address ??= InternetAddress.ANY_IP_V6;
-    HttpServer httpServer;
-
-    SerialServer serialServer;
-
-    var handler = webSocketHandler((WebSocketChannel webSocketChannel) {
-      SerialServerConnection serverChannel = new SerialServerConnection(
-          serialServer, ++serialServer.lastId, webSocketChannel);
-
-      serialServer.channels.add(serverChannel);
-      if (debug) {
-        print("[SerialServer] adding channel: ${serialServer.channels}");
-      }
-    });
-
-    httpServer = await shelf_io.serve(handler, address, port);
-    serialServer =
-        //new SerialServer(await shelf_io.serve(handler, 'localhost', 8988));
-        new SerialServer(httpServer);
-    if (SerialServer.debug) {
-      print(
-          'Serving at ws://${serialServer.httpServer.address
-              .host}:${serialServer
-              .httpServer.port}');
-    }
-    return serialServer;
-  }
+  Map<String, int> _connectedPathIds = {};
 
   List<DeviceInfo> get deviceInfos {
     var list = [];
@@ -312,9 +306,10 @@ class SerialServer {
       ..path = serialWssSimSlavePortPath);
     return list;
   }
+
   close() async {
-    await httpServer.close(force: true);
-    if (SerialServer.debug) {
+    await _wsServer.close();
+    if (SerialServer.debug.on) {
       print("close channel: ${channels}");
     }
     List<SerialServerConnection> connections = new List.from(channels);
@@ -322,4 +317,5 @@ class SerialServer {
       await connection.close();
     }
   }
+
 }

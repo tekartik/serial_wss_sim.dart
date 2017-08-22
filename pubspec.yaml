@@ -12,13 +12,16 @@ dependencies:
   shelf_web_socket: any
   tekartik_serial_wss_client:
     git: git://github.com/tekartik/serial_wss_client.dart
+  tekartik_common_utils:
+    git: git://github.com/tekartik/common_utils.dart
+    version: '>=0.4.8'
 dev_dependencies:
   test: ^0.12.0
   tekartik_test_menu:
     git: git://github.com/tekartik/test_menu.dart
 dependency_overrides:
-#  tekartik_serial_wss_client:
-#     path: ../serial_wss_client.dart
+  tekartik_serial_wss_client:
+    path: ../serial_wss_client.dart
 
 executables:
   serial_wss_sim:

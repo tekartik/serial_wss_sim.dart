@@ -1,56 +1,64 @@
 // Copyright (c) 2017, alex. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
+
+import 'package:tekartik_common_utils/common_utils_import.dart';
+import 'package:tekartik_serial_wss_client/channel/client/memory.dart';
 import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
-import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
+import 'package:tekartik_serial_wss_client/channel/server/memory.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
-import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 import 'package:tekartik_serial_wss_client/message.dart' as swss;
-import 'package:tekartik_serial_wss_client/channel/memory.dart';
+import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
+import 'package:tekartik_serial_wss_client/channel/io.dart';
+
 import 'package:tekartik_serial_wss_client/service/serial_wss_client_service.dart';
+import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:test/test.dart';
 import 'package:web_socket_channel/io.dart';
+import 'serial_wss_sim_test.dart';
 
 void main() {
 
-  test_main(memoryWebSocketChannelFactory);
-}
-void test_main(WebSocketChannelFactory factory) {
-  group('serial_server', () {
+  //test_main(ioWebSocketChannelFactory);
+  group('serial_server_io', () {
     test('start_connect_and_close', () async {
-      var server = await SerialServer.start(factory.server, port:0);
-      //devPrint(server.port);
+      var server = await SerialServer.start(ioWebSocketChannelFactory.server, port: 0);
+      devPrint(server.url);
 
-      //String url = "ws://localhost:${server.port}";
-      WebSocketChannel channel = factory.client.connect(server.url);
+      String url = server.url; //"ws://localhost:${server.port}";
+      devPrint("URL: ${url}");
+      WebSocketChannel channel = ioWebSocketChannelFactory.client.connect(url);
+      Serial.debug.on = true;
       Serial serial = new Serial(channel);
       await serial.connected;
       await server.close();
     });
 
+
     test('options', () async {
-      SerialServer.debug.on = true;
-      var server =  await SerialServer.start(factory.server, port:0);
+      var server = await SerialServer.start(ioWebSocketChannelFactory.server, port: 0);
       //devPrint(server.port);
       SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+          ioWebSocketChannelFactory.client,
+          url: getSerialWssUrl(port: server.port));
       service.start();
       await service.waitForConnected(true);
 
       ConnectionOptions options = new ConnectionOptions()..bitrate = 1234;
-      ConnectionInfo info = await service.serial.connect(serialWssSimMasterPortPath, options: options);
+      ConnectionInfo info = await service.serial
+          .connect(serialWssSimMasterPortPath, options: options);
       expect(info.bitrate, 1234);
       await server.close();
     });
 
+    /*
     test('master_slave', () async {
-      var server = await SerialServer.start(factory.server, port:0);
+      var server = await ioSerialServerFactory.start(port: 0);
       int port = server.port;
 
       SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+          ioWebSocketChannelFactory,
+          url: getSerialWssUrl(port: port));
       service.start();
 
       Completer masterReceiveCompleter = new Completer();
@@ -87,12 +95,12 @@ void test_main(WebSocketChannelFactory factory) {
     });
 
     test('busy', () async {
-      var server =  await SerialServer.start(factory.server, port:0);
+      var server = await ioSerialServerFactory.start(port: 0);
       int port = server.port;
 
       SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+          ioWebSocketChannelFactory,
+          url: getSerialWssUrl(port: port));
       service.start();
 
       Completer completer = new Completer();
@@ -116,5 +124,6 @@ void test_main(WebSocketChannelFactory factory) {
       //await service.stop();
       await server.close();
     });
+    */
   });
 }

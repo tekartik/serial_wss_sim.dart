@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:tekartik_serial_wss_client/channel/server/io.dart';
 import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'dart:io';
 
 main() async {
-  SerialServer serialServer = await SerialServer.start();
+  SerialServer serialServer = await SerialServer.start(ioWebSocketChannelServerFactory);
   print("started: ${serialServer.deviceInfos}\n[q] [ENTER] to quit");
   StreamSubscription subscription;
   subscription = stdin
