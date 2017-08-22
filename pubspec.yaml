@@ -20,8 +20,8 @@ dev_dependencies:
   tekartik_test_menu:
     git: git://github.com/tekartik/test_menu.dart
 dependency_overrides:
-  tekartik_serial_wss_client:
-    path: ../serial_wss_client.dart
+#  tekartik_serial_wss_client:
+#    path: ../serial_wss_client.dart
 
 executables:
   serial_wss_sim:
