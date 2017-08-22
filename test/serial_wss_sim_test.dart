@@ -1,24 +1,24 @@
 // Copyright (c) 2017, alex. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
-import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
-import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
-import 'package:tekartik_serial_wss_client/constant.dart';
-import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
-import 'package:tekartik_serial_wss_client/message.dart' as swss;
+
 import 'package:tekartik_serial_wss_client/channel/memory.dart';
+import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
+import 'package:tekartik_serial_wss_client/constant.dart';
+import 'package:tekartik_serial_wss_client/message.dart' as swss;
+import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 import 'package:tekartik_serial_wss_client/service/serial_wss_client_service.dart';
+import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:test/test.dart';
-import 'package:web_socket_channel/io.dart';
 
 void main() {
-
   test_main(memoryWebSocketChannelFactory);
 }
+
 void test_main(WebSocketChannelFactory factory) {
   group('serial_server', () {
     test('start_connect_and_close', () async {
-      var server = await SerialServer.start(factory.server, port:0);
+      var server = await SerialServer.start(factory.server, port: 0);
       //devPrint(server.port);
 
       //String url = "ws://localhost:${server.port}";
@@ -29,28 +29,26 @@ void test_main(WebSocketChannelFactory factory) {
     });
 
     test('options', () async {
-      SerialServer.debug.on = true;
-      var server =  await SerialServer.start(factory.server, port:0);
+      //SerialServer.debug.on = true;
+      var server = await SerialServer.start(factory.server, port: 0);
       //devPrint(server.port);
-      SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+      SerialWssClientService service =
+          new SerialWssClientService(factory.client, url: server.url);
       service.start();
       await service.waitForConnected(true);
 
       ConnectionOptions options = new ConnectionOptions()..bitrate = 1234;
-      ConnectionInfo info = await service.serial.connect(serialWssSimMasterPortPath, options: options);
+      ConnectionInfo info = await service.serial
+          .connect(serialWssSimMasterPortPath, options: options);
       expect(info.bitrate, 1234);
       await server.close();
     });
 
     test('master_slave', () async {
-      var server = await SerialServer.start(factory.server, port:0);
-      int port = server.port;
+      var server = await SerialServer.start(factory.server, port: 0);
 
-      SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+      SerialWssClientService service =
+          new SerialWssClientService(factory.client, url: server.url);
       service.start();
 
       Completer masterReceiveCompleter = new Completer();
@@ -87,12 +85,10 @@ void test_main(WebSocketChannelFactory factory) {
     });
 
     test('busy', () async {
-      var server =  await SerialServer.start(factory.server, port:0);
-      int port = server.port;
+      var server = await SerialServer.start(factory.server, port: 0);
 
-      SerialWssClientService service = new SerialWssClientService(
-          factory.client,
-          url: server.url);
+      SerialWssClientService service =
+          new SerialWssClientService(factory.client, url: server.url);
       service.start();
 
       Completer completer = new Completer();
