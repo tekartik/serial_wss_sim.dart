@@ -158,11 +158,13 @@ class SerialServerConnection {
             } else if (message.method == methodSend) {
               int connectionId = message.params['connectionId'];
 
+              bool hasPipe = false;
               if (_checkConnectionId(connectionId)) {
                 // send to other null modem?
                 if (masterChannel == this &&
                     masterConnectionId == connectionId) {
                   if (slaveChannel != null) {
+                    hasPipe = true;
                     slaveChannel.sendMessage(new Notification(methodReceive, {
                       'connectionId': slaveConnectionId,
                       'data': message.params['data']
@@ -171,13 +173,14 @@ class SerialServerConnection {
                 } else if (slaveChannel == this &&
                     slaveConnectionId == connectionId) {
                   if (masterChannel != null) {
+                    hasPipe = true;
                     masterChannel.sendMessage(new Notification(methodReceive, {
                       'connectionId': masterConnectionId,
                       'data': message.params['data']
                     }));
                   }
                 }
-                sendMessage(new Response(message.id, {'bytesSent': 0}));
+                sendMessage(new Response(message.id, {'bytesSent': hasPipe ? message.params['data'].length ~/ 2 : 0}));
               } else {
                 sendMessage(new ErrorResponse(
                     message.id,
@@ -234,7 +237,7 @@ class SerialServerConnection {
   void sendMessage(Message message) {
     Map msgMap = message.toMap();
     if (SerialServer.debug.on) {
-      print("send[$id]: ${msgMap}");
+      print("send[$id]: ${JSON.encode(msgMap)}");
     }
     _streamChannel.sink.add(JSON.encode(msgMap));
     //webSocketChannel.sink.done
