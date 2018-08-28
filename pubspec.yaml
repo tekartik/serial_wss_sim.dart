@@ -2,10 +2,10 @@ name: tekartik_serial_wss_sim
 description: Serial Wss simulation
 version: 0.2.2
 #homepage: https://www.example.com
-#author: alex <email@example.com>
+author: alex <alex@tekartik.com>
 
 environment:
-  sdk: '>=1.24.3 <2.0.0'
+  sdk: '>=2.0.0-dev.58 <3.0.0'
 
 dependencies:
   web_socket_channel: any
@@ -13,19 +13,20 @@ dependencies:
   tekartik_serial_wss_client:
     git:
       url: git://github.com/tekartik/serial_wss_client.dart
-      ref: dart1
-    version: '>=0.4.0'
+      ref: dart2
+    version: '>=0.6.1'
   tekartik_common_utils:
     git:
       url: git://github.com/tekartik/common_utils.dart
-      ref: dart1
+      ref: dart2
     version: '>=0.4.8'
 dev_dependencies:
-  test: ^0.12.0
-  tekartik_test_menu:
+  test: '>=1.0.0'
+  tekartik_test_menu_io:
     git:
       url: git://github.com/tekartik/test_menu.dart
-      ref: dart1
+      ref: dart2
+      path: test_menu_io
 
 dependency_overrides:
 #  tekartik_serial_wss_client:
