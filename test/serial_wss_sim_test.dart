@@ -2,8 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 import 'dart:async';
 
-import 'package:tekartik_serial_wss_client/channel/memory.dart';
-import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
+import 'package:tekartik_web_socket/web_socket.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/message.dart' as swss;
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
@@ -12,7 +11,7 @@ import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test_main(memoryWebSocketChannelFactory);
+  test_main(webSocketChannelFactoryMemory);
 }
 
 void test_main(WebSocketChannelFactory factory) {
