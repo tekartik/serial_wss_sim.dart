@@ -46,7 +46,5 @@ void main() {
       expect(info.bitrate, 1234);
       await server.close();
     });
-
-
   });
 }

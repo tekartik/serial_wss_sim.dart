@@ -7,11 +7,12 @@ import 'dart:io';
 main() async {
   // ignore: deprecated_member_use
   // SerialServer.debug.on = true;
-  SerialServer serialServer = await SerialServer.start(ioWebSocketChannelServerFactory);
+  SerialServer serialServer =
+      await SerialServer.start(ioWebSocketChannelServerFactory);
   print("started: ${serialServer.deviceInfos}\n[q] [ENTER] to quit");
   StreamSubscription subscription;
   subscription = stdin
-      .transform(UTF8.decoder)
+      .transform(utf8.decoder)
       .transform(new LineSplitter())
       .listen((data) {
     if (data == 'q') {
