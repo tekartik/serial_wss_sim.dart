@@ -2,8 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 import 'dart:core' hide Error;
 import 'package:tekartik_common_utils/common_utils_import.dart';
-import 'package:tekartik_serial_wss_client/channel/server/web_socket_channel_server.dart';
-import 'package:tekartik_serial_wss_client/channel/web_socket_channel.dart';
+import 'package:tekartik_web_socket/web_socket.dart';
 import 'package:tekartik_serial_wss_client/message.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
@@ -69,7 +68,7 @@ class SerialServerConnection {
       //webSocketChannel.sink.add("echo $message");
       Map<String, dynamic> map;
       try {
-        map = parseJsonObject(data);
+        map = parseJsonObject(data as String);
       } catch (e) {
         print(e);
       }
@@ -82,8 +81,8 @@ class SerialServerConnection {
           if (!_initReceived) {
             if (message.method == methodInit) {
               Map params = message.params ?? {};
-              _clientName = params["name"];
-              _clientVersion = params["version"];
+              _clientName = params["name"] as String;
+              _clientVersion = params["version"] as String;
               _initReceived = true;
               if (SerialServer.debug.on) {
                 print("client connected: $_clientName $_clientVersion");
@@ -134,8 +133,7 @@ class SerialServerConnection {
               Map connectionInfo = params['options'] ?? {};
               // copy connection info from options;
               connectionInfo['connectionId'] = connectionId;
-              sendMessage(
-                  new Response(message.id, connectionInfo));
+              sendMessage(new Response(message.id, connectionInfo));
 
               serialServer._connectedPathIds[path] = connectionId;
               connectedPaths[connectionId] = path;
@@ -179,7 +177,9 @@ class SerialServerConnection {
                     }));
                   }
                 }
-                sendMessage(new Response(message.id, {'bytesSent': hasPipe ? message.params['data'].length ~/ 2 : 0}));
+                sendMessage(new Response(message.id, {
+                  'bytesSent': hasPipe ? message.params['data'].length ~/ 2 : 0
+                }));
               } else {
                 sendMessage(new ErrorResponse(
                     message.id,
@@ -236,9 +236,9 @@ class SerialServerConnection {
   void sendMessage(Message message) {
     Map msgMap = message.toMap();
     if (SerialServer.debug.on) {
-      print("send[$id]: ${JSON.encode(msgMap)}");
+      print("send[$id]: ${json.encode(msgMap)}");
     }
-    _streamChannel.sink.add(JSON.encode(msgMap));
+    _streamChannel.sink.add(json.encode(msgMap));
     //webSocketChannel.sink.done
   }
 
@@ -266,8 +266,8 @@ class SerialServer {
 
   SerialServer._(this._wsServer) {
     _wsServer.stream.listen((WebSocketChannel webSocketChannel) {
-      SerialServerConnection serverChannel = new SerialServerConnection(
-          this, ++lastId, webSocketChannel);
+      SerialServerConnection serverChannel =
+          new SerialServerConnection(this, ++lastId, webSocketChannel);
 
       channels.add(serverChannel);
       if (SerialServer.debug.on) {
@@ -276,24 +276,24 @@ class SerialServer {
     });
   }
 
-  static Future<SerialServer> start(WebSocketChannelServerFactory factory, {address, int port}) async {
+  static Future<SerialServer> start(WebSocketChannelServerFactory factory,
+      {address, int port}) async {
     // default port
     port ??= serialWssPortDefault;
 
-    SerialServer serialServer = new SerialServer._(await factory.serve(address: address, port:port));
+    SerialServer serialServer =
+        new SerialServer._(await factory.serve(address: address, port: port));
     if (debug.on) {
       print("[SerialServer] serving $serialServer");
     }
     return serialServer;
   }
+
   // get the server url
   String get url => _wsServer.url;
   int get port => _wsServer.port;
 
-
-
   List<SerialServerConnection> channels = [];
-
 
   int _generateNextId() {
     return ++lastId;
@@ -304,7 +304,7 @@ class SerialServer {
   Map<String, int> _connectedPathIds = {};
 
   List<DeviceInfo> get deviceInfos {
-    var list = [];
+    var list = <DeviceInfo>[];
     list.add(new DeviceInfo()
       ..displayName = "Master"
       ..path = serialWssSimMasterPortPath);
@@ -326,5 +326,4 @@ class SerialServer {
   }
 
   toString() => "WssSerialSim $url";
-
 }

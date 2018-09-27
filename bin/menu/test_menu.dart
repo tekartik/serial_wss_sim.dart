@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:tekartik_test_menu/test_menu_io.dart';
+import 'package:tekartik_test_menu_io/test_menu_io.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -29,7 +29,7 @@ main(List<String> args) async {
         if (httpServer == null) {
           var handler = webSocketHandler((WebSocketChannel webSocketChannel) {
             write('connected');
-            webSocketChannel.sink.add(JSON.encode({
+            webSocketChannel.sink.add(json.encode({
               "jsonrpc": "2.0",
               "method": "info",
               "params": {
