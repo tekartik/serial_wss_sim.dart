@@ -4,9 +4,9 @@ import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-Version version = new Version(0, 1, 0);
+Version version = Version(0, 1, 0);
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   mainMenu(args, () {
     menu('main', () {
       item("write hola", () async {

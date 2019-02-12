@@ -11,7 +11,7 @@ import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 // version 0.2.0 has init support
 // version 0.3.0 has support data in hex
 // version 0.5.0 has busy support on real server
-Version version = new Version(0, 5, 0);
+Version version = Version(0, 5, 0);
 
 SerialServerConnection masterChannel;
 int masterConnectionId;
@@ -50,13 +50,13 @@ class SerialServerConnection {
       }
     }));
     */
-    sendMessage(new Notification(methodInfo, {
+    sendMessage(Notification(methodInfo, {
       "package": "com.tekartik.serial_wss_sim",
       "version": version.toString()
     }));
 
     // Wait for 10s for _initReceived or close the channel
-    new Future.value().timeout(new Duration(seconds: 10), onTimeout: () {
+    Future.value().timeout(Duration(seconds: 10), onTimeout: () {
       if (!_initReceived) {
         _markChannelDisconnected();
       }
@@ -87,7 +87,7 @@ class SerialServerConnection {
               if (SerialServer.debug.on) {
                 print("client connected: $_clientName $_clientVersion");
               }
-              sendMessage(new Response(message.id, true));
+              sendMessage(Response(message.id, true));
             }
           } else {
             if (message.method == methodGetDevices) {
@@ -97,7 +97,7 @@ class SerialServerConnection {
               for (DeviceInfo deviceInfo in serialServer.deviceInfos) {
                 list.add(deviceInfo.toMap());
               }
-              Response response = new Response(message.id, list);
+              Response response = Response(message.id, list);
               sendMessage(response);
             } else if (message.method == methodConnect) {
               // recv[4] {"jsonrpc":"2.0","id":2,"method":"connect","params":{"path":"/null/b"}}
@@ -105,15 +105,15 @@ class SerialServerConnection {
               Map params = message.params ?? {};
               String path = params['path'];
               if (path == null) {
-                sendMessage(new ErrorResponse(message.id,
-                    new Error(errorCodeInvalidPath, "'path' cannot be null")));
+                sendMessage(ErrorResponse(message.id,
+                    Error(errorCodeInvalidPath, "'path' cannot be null")));
                 return;
               }
 
               // busy
               if (serialServer._connectedPathIds.containsKey(path)) {
-                sendMessage(new ErrorResponse(message.id,
-                    new Error(errorCodePortBusy, "busy path: $path")));
+                sendMessage(ErrorResponse(
+                    message.id, Error(errorCodePortBusy, "busy path: $path")));
                 return;
               }
 
@@ -126,14 +126,14 @@ class SerialServerConnection {
                 slaveChannel = this;
                 slaveConnectionId = connectionId;
               } else {
-                sendMessage(new ErrorResponse(message.id,
-                    new Error(errorCodeInvalidPath, "invalid path: $path")));
+                sendMessage(ErrorResponse(message.id,
+                    Error(errorCodeInvalidPath, "invalid path: $path")));
                 return;
               }
               Map connectionInfo = params['options'] ?? {};
               // copy connection info from options;
               connectionInfo['connectionId'] = connectionId;
-              sendMessage(new Response(message.id, connectionInfo));
+              sendMessage(Response(message.id, connectionInfo));
 
               serialServer._connectedPathIds[path] = connectionId;
               connectedPaths[connectionId] = path;
@@ -142,12 +142,10 @@ class SerialServerConnection {
 
               if (_checkConnectionId(connectionId)) {
                 _markPortDisconnected(connectionId);
-                sendMessage(new Response(message.id, true));
+                sendMessage(Response(message.id, true));
               } else {
-                sendMessage(new ErrorResponse(
-                    message.id,
-                    new Error(
-                        errorCodeInvalidId, "invalid id: $connectionId")));
+                sendMessage(ErrorResponse(message.id,
+                    Error(errorCodeInvalidId, "invalid id: $connectionId")));
               }
 
               // recv[4] {"jsonrpc":"2.0","id":4,"method":"disconnect","params":{"connectionId":1
@@ -162,7 +160,7 @@ class SerialServerConnection {
                     masterConnectionId == connectionId) {
                   if (slaveChannel != null) {
                     hasPipe = true;
-                    slaveChannel.sendMessage(new Notification(methodReceive, {
+                    slaveChannel.sendMessage(Notification(methodReceive, {
                       'connectionId': slaveConnectionId,
                       'data': message.params['data']
                     }));
@@ -171,25 +169,23 @@ class SerialServerConnection {
                     slaveConnectionId == connectionId) {
                   if (masterChannel != null) {
                     hasPipe = true;
-                    masterChannel.sendMessage(new Notification(methodReceive, {
+                    masterChannel.sendMessage(Notification(methodReceive, {
                       'connectionId': masterConnectionId,
                       'data': message.params['data']
                     }));
                   }
                 }
-                sendMessage(new Response(message.id, {
+                sendMessage(Response(message.id, {
                   'bytesSent': hasPipe ? message.params['data'].length ~/ 2 : 0
                 }));
               } else {
-                sendMessage(new ErrorResponse(
-                    message.id,
-                    new Error(
-                        errorCodeInvalidId, "invalid id: $connectionId")));
+                sendMessage(ErrorResponse(message.id,
+                    Error(errorCodeInvalidId, "invalid id: $connectionId")));
               }
             } else {
-              sendMessage(new ErrorResponse(
+              sendMessage(ErrorResponse(
                   message.id,
-                  new Error(errorCodeMethodNotSupported,
+                  Error(errorCodeMethodNotSupported,
                       "method '${message.method}' not supported")));
             }
           }
@@ -224,7 +220,7 @@ class SerialServerConnection {
   void _markChannelDisconnected() {
     if (!_channelDisconnected) {
       _channelDisconnected = true;
-      List<int> connectionIds = new List.from(connectedPaths.keys);
+      List<int> connectionIds = List.from(connectedPaths.keys);
       for (int connectionId in connectionIds) {
         _markPortDisconnected(connectionId);
       }
@@ -249,7 +245,8 @@ class SerialServerConnection {
     await _streamChannel.sink.close();
   }
 
-  toString() {
+  @override
+  String toString() {
     return "channel-$id";
   }
 }
@@ -260,14 +257,14 @@ abstract class SerialServerFactory {
 
 class SerialServer {
   // Set to true to get debug logs
-  static DevFlag debug = new DevFlag("SerialService.debug");
+  static DevFlag debug = DevFlag("SerialService.debug");
 
   final WebSocketChannelServer _wsServer;
 
   SerialServer._(this._wsServer) {
     _wsServer.stream.listen((WebSocketChannel webSocketChannel) {
       SerialServerConnection serverChannel =
-          new SerialServerConnection(this, ++lastId, webSocketChannel);
+          SerialServerConnection(this, ++lastId, webSocketChannel);
 
       channels.add(serverChannel);
       if (SerialServer.debug.on) {
@@ -282,7 +279,7 @@ class SerialServer {
     port ??= serialWssPortDefault;
 
     SerialServer serialServer =
-        new SerialServer._(await factory.serve(address: address, port: port));
+        SerialServer._(await factory.serve(address: address, port: port));
     if (debug.on) {
       print("[SerialServer] serving $serialServer");
     }
@@ -305,10 +302,10 @@ class SerialServer {
 
   List<DeviceInfo> get deviceInfos {
     var list = <DeviceInfo>[];
-    list.add(new DeviceInfo()
+    list.add(DeviceInfo()
       ..displayName = "Master"
       ..path = serialWssSimMasterPortPath);
-    list.add(new DeviceInfo()
+    list.add(DeviceInfo()
       ..displayName = "Slave"
       ..path = serialWssSimSlavePortPath);
     return list;
@@ -319,11 +316,12 @@ class SerialServer {
     if (SerialServer.debug.on) {
       print("[SerialServer] close channel: ${channels}");
     }
-    List<SerialServerConnection> connections = new List.from(channels);
+    List<SerialServerConnection> connections = List.from(channels);
     for (SerialServerConnection connection in connections) {
       await connection.close();
     }
   }
 
-  toString() => "WssSerialSim $url";
+  @override
+  String toString() => "WssSerialSim $url";
 }
