@@ -80,7 +80,7 @@ class SerialServerConnection {
         if (message is Request) {
           if (!_initReceived) {
             if (message.method == methodInit) {
-              Map params = message.params ?? {};
+              Map params = (message.params as Map) ?? {};
               _clientName = params["name"] as String;
               _clientVersion = params["version"] as String;
               _initReceived = true;
@@ -102,8 +102,8 @@ class SerialServerConnection {
             } else if (message.method == methodConnect) {
               // recv[4] {"jsonrpc":"2.0","id":2,"method":"connect","params":{"path":"/null/b"}}
               // send[1]: {jsonrpc: 2.0, id: 2, result: {connectionId: 1}}
-              Map params = message.params ?? {};
-              String path = params['path'];
+              Map params = (message.params as Map) ?? {};
+              final path = params['path']?.toString();
               if (path == null) {
                 sendMessage(ErrorResponse(message.id,
                     Error(errorCodeInvalidPath, "'path' cannot be null")));
@@ -130,7 +130,7 @@ class SerialServerConnection {
                     Error(errorCodeInvalidPath, "invalid path: $path")));
                 return;
               }
-              Map connectionInfo = params['options'] ?? {};
+              Map connectionInfo = (params['options'] as Map) ?? {};
               // copy connection info from options;
               connectionInfo['connectionId'] = connectionId;
               sendMessage(Response(message.id, connectionInfo));
@@ -138,7 +138,7 @@ class SerialServerConnection {
               serialServer._connectedPathIds[path] = connectionId;
               connectedPaths[connectionId] = path;
             } else if (message.method == methodDisconnect) {
-              int connectionId = message.params['connectionId'];
+              final connectionId = message.params['connectionId'] as int;
 
               if (_checkConnectionId(connectionId)) {
                 _markPortDisconnected(connectionId);
@@ -151,7 +151,7 @@ class SerialServerConnection {
               // recv[4] {"jsonrpc":"2.0","id":4,"method":"disconnect","params":{"connectionId":1
 
             } else if (message.method == methodSend) {
-              int connectionId = message.params['connectionId'];
+              final connectionId = message.params['connectionId'] as int;
 
               bool hasPipe = false;
               if (_checkConnectionId(connectionId)) {
