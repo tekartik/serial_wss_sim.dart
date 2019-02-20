@@ -11,10 +11,10 @@ import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test_main(webSocketChannelFactoryMemory);
+  testMain(webSocketChannelFactoryMemory);
 }
 
-void test_main(WebSocketChannelFactory factory) {
+void testMain(WebSocketChannelFactory factory) {
   group('serial_server', () {
     test('start_connect_and_close', () async {
       var server = await SerialServer.start(factory.server, port: 0);
@@ -22,7 +22,7 @@ void test_main(WebSocketChannelFactory factory) {
 
       //String url = "ws://localhost:${server.port}";
       WebSocketChannel channel = factory.client.connect(server.url);
-      Serial serial = new Serial(channel);
+      Serial serial = Serial(channel);
       await serial.connected;
       await server.close();
     });
@@ -32,11 +32,11 @@ void test_main(WebSocketChannelFactory factory) {
       var server = await SerialServer.start(factory.server, port: 0);
       //devPrint(server.port);
       SerialWssClientService service =
-          new SerialWssClientService(factory.client, url: server.url);
+          SerialWssClientService(factory.client, url: server.url);
       service.start();
       await service.waitForConnected(true);
 
-      ConnectionOptions options = new ConnectionOptions()..bitrate = 1234;
+      ConnectionOptions options = ConnectionOptions()..bitrate = 1234;
       ConnectionInfo info = await service.serial
           .connect(serialWssSimMasterPortPath, options: options);
       expect(info.bitrate, 1234);
@@ -47,11 +47,11 @@ void test_main(WebSocketChannelFactory factory) {
       var server = await SerialServer.start(factory.server, port: 0);
 
       SerialWssClientService service =
-          new SerialWssClientService(factory.client, url: server.url);
+          SerialWssClientService(factory.client, url: server.url);
       service.start();
 
-      Completer masterReceiveCompleter = new Completer();
-      Completer slaveReceiveCompleter = new Completer();
+      Completer masterReceiveCompleter = Completer();
+      Completer slaveReceiveCompleter = Completer();
 
       service.onConnected.listen((bool connected) async {
         if (connected) {
@@ -87,10 +87,10 @@ void test_main(WebSocketChannelFactory factory) {
       var server = await SerialServer.start(factory.server, port: 0);
 
       SerialWssClientService service =
-          new SerialWssClientService(factory.client, url: server.url);
+          SerialWssClientService(factory.client, url: server.url);
       service.start();
 
-      Completer completer = new Completer();
+      Completer completer = Completer();
 
       service.onConnected.listen((bool connected) async {
         if (connected) {
