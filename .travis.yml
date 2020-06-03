@@ -5,4 +5,4 @@ dart:
   - beta
   - dev
 script:
-  - tool/travis.sh
+  - dart tool/run_ci.dart
