@@ -9,36 +9,36 @@ Version version = Version(0, 1, 0);
 Future main(List<String> args) async {
   mainMenu(args, () {
     menu('main', () {
-      item("write hola", () async {
+      item('write hola', () async {
         write('Hola');
-      }, cmd: "a");
-      item("echo prompt", () async {
+      }, cmd: 'a');
+      item('echo prompt', () async {
         write('RESULT prompt: ${await prompt()}');
       });
-      item("print hi", () {
+      item('print hi', () {
         print('hi');
       });
       menu('sub', () {
-        item("print hi", () => print('hi'));
+        item('print hi', () => print('hi'));
       }, cmd: 's');
     });
 
     menu('wss', () {
       HttpServer httpServer;
-      item("server", () async {
+      item('server', () async {
         if (httpServer == null) {
           var handler = webSocketHandler((WebSocketChannel webSocketChannel) {
             write('connected');
             webSocketChannel.sink.add(json.encode({
-              "jsonrpc": "2.0",
-              "method": "info",
-              "params": {
-                "package": "com.tekartik.serial_wss_sim",
-                "version": version.toString()
+              'jsonrpc': '2.0',
+              'method': 'info',
+              'params': {
+                'package': 'com.tekartik.serial_wss_sim',
+                'version': version.toString()
               }
             }));
             webSocketChannel.stream.listen((message) {
-              webSocketChannel.sink.add("echo $message");
+              webSocketChannel.sink.add('echo $message');
             }, onDone: () {
               write('socket done');
             });
@@ -49,7 +49,7 @@ Future main(List<String> args) async {
               'Serving at ws://${httpServer.address.host}:${httpServer.port}');
         }
       });
-      item("stop", () async {
+      item('stop', () async {
         if (httpServer != null) {
           await httpServer.close(force: true);
           httpServer = null;
