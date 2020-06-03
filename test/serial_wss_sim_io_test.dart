@@ -1,4 +1,4 @@
-@TestOn("vm")
+@TestOn('vm')
 
 // Copyright (c) 2017, alex. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
@@ -19,11 +19,11 @@ void main() {
           await SerialServer.start(webSocketChannelFactoryIo.server, port: 0);
       //devPrint(server.url);
 
-      String url = server.url; //"ws://localhost:${server.port}";
-      //devPrint("URL: ${url}");
+      var url = server.url; //'ws://localhost:${server.port}';
+      //devPrint('URL: ${url}');
       var channel = webSocketChannelClientFactoryIo.connect<String>(url);
       //Serial.debug.on = true;
-      Serial serial = Serial(channel);
+      var serial = Serial(channel);
       await serial.connected;
       await server.close();
     });
@@ -32,14 +32,13 @@ void main() {
       var server =
           await SerialServer.start(webSocketChannelFactoryIo.server, port: 0);
       //devPrint(server.port);
-      SerialWssClientService service = SerialWssClientService(
-          webSocketChannelClientFactoryIo,
+      var service = SerialWssClientService(webSocketChannelClientFactoryIo,
           url: getSerialWssUrl(port: server.port));
       service.start();
       await service.waitForConnected(true);
 
-      ConnectionOptions options = ConnectionOptions()..bitrate = 1234;
-      ConnectionInfo info = await service.serial
+      var options = ConnectionOptions()..bitrate = 1234;
+      var info = await service.serial
           .connect(serialWssSimMasterPortPath, options: options);
       expect(info.bitrate, 1234);
       await server.close();

@@ -20,9 +20,9 @@ void testMain(WebSocketChannelFactory factory) {
       var server = await SerialServer.start(factory.server, port: 0);
       //devPrint(server.port);
 
-      //String url = "ws://localhost:${server.port}";
-      WebSocketChannel channel = factory.client.connect(server.url);
-      Serial serial = Serial(channel);
+      //String url = 'ws://localhost:${server.port}';
+      var channel = factory.client.connect(server.url);
+      var serial = Serial(channel);
       await serial.connected;
       await server.close();
     });
@@ -31,13 +31,12 @@ void testMain(WebSocketChannelFactory factory) {
       //SerialServer.debug.on = true;
       var server = await SerialServer.start(factory.server, port: 0);
       //devPrint(server.port);
-      SerialWssClientService service =
-          SerialWssClientService(factory.client, url: server.url);
+      var service = SerialWssClientService(factory.client, url: server.url);
       service.start();
       await service.waitForConnected(true);
 
-      ConnectionOptions options = ConnectionOptions()..bitrate = 1234;
-      ConnectionInfo info = await service.serial
+      var options = ConnectionOptions()..bitrate = 1234;
+      var info = await service.serial
           .connect(serialWssSimMasterPortPath, options: options);
       expect(info.bitrate, 1234);
       await server.close();
@@ -46,12 +45,11 @@ void testMain(WebSocketChannelFactory factory) {
     test('master_slave', () async {
       var server = await SerialServer.start(factory.server, port: 0);
 
-      SerialWssClientService service =
-          SerialWssClientService(factory.client, url: server.url);
+      var service = SerialWssClientService(factory.client, url: server.url);
       service.start();
 
-      Completer masterReceiveCompleter = Completer();
-      Completer slaveReceiveCompleter = Completer();
+      var masterReceiveCompleter = Completer();
+      var slaveReceiveCompleter = Completer();
 
       service.onConnected.listen((bool connected) async {
         if (connected) {
@@ -86,11 +84,10 @@ void testMain(WebSocketChannelFactory factory) {
     test('busy', () async {
       var server = await SerialServer.start(factory.server, port: 0);
 
-      SerialWssClientService service =
-          SerialWssClientService(factory.client, url: server.url);
+      var service = SerialWssClientService(factory.client, url: server.url);
       service.start();
 
-      Completer completer = Completer();
+      var completer = Completer();
 
       service.onConnected.listen((bool connected) async {
         if (connected) {
@@ -99,7 +96,7 @@ void testMain(WebSocketChannelFactory factory) {
 
           try {
             print(await service.serial.connect(serialWssSimMasterPortPath));
-            fail("should fail");
+            fail('should fail');
           } on swss.Error catch (e) {
             expect(e.code, errorCodePortBusy);
           }
