@@ -1,11 +1,12 @@
 name: tekartik_serial_wss_sim
 description: Serial Wss simulation
 version: 0.3.3
+publish_to: none
 #homepage: https://www.example.com
 author: alex <alex@tekartik.com>
 
 environment:
-  sdk: '>=2.7.0-dev <3.0.0'
+  sdk: '>=2.10.0-0 <3.0.0'
 
 dependencies:
   web_socket_channel: any
