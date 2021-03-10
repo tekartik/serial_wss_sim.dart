@@ -269,7 +269,7 @@ class SerialServer {
 
       channels.add(serverChannel);
       if (SerialServer.debug.on) {
-        print('[SerialServer] adding channel: ${channels}');
+        print('[SerialServer] adding channel: $channels');
       }
     });
   }
@@ -316,7 +316,7 @@ class SerialServer {
   Future close() async {
     await _wsServer.close();
     if (SerialServer.debug.on) {
-      print('[SerialServer] close channel: ${channels}');
+      print('[SerialServer] close channel: $channels');
     }
     var connections = List<SerialServerConnection>.from(channels);
     for (var connection in connections) {
