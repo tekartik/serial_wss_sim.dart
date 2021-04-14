@@ -139,7 +139,8 @@ class SerialServerConnection {
               serialServer._connectedPathIds[path] = connectionId;
               connectedPaths[connectionId] = path;
             } else if (message.method == methodDisconnect) {
-              final connectionId = message.params['connectionId'] as int;
+              var paramsMap = message.params as Map;
+              final connectionId = paramsMap['connectionId'] as int;
 
               if (_checkConnectionId(connectionId)) {
                 _markPortDisconnected(connectionId);
@@ -152,7 +153,8 @@ class SerialServerConnection {
               // recv[4] {'jsonrpc':'2.0','id':4,'method':'disconnect','params':{'connectionId':1
 
             } else if (message.method == methodSend) {
-              final connectionId = message.params['connectionId'] as int;
+              var paramsMap = message.params as Map;
+              final connectionId = paramsMap['connectionId'] as int;
 
               var hasPipe = false;
               if (_checkConnectionId(connectionId)) {
@@ -163,7 +165,7 @@ class SerialServerConnection {
                     hasPipe = true;
                     slaveChannel.sendMessage(Notification(methodReceive, {
                       'connectionId': slaveConnectionId,
-                      'data': message.params['data']
+                      'data': paramsMap['data']
                     }));
                   }
                 } else if (slaveChannel == this &&
@@ -172,12 +174,13 @@ class SerialServerConnection {
                     hasPipe = true;
                     masterChannel.sendMessage(Notification(methodReceive, {
                       'connectionId': masterConnectionId,
-                      'data': message.params['data']
+                      'data': paramsMap['data']
                     }));
                   }
                 }
                 sendMessage(Response(message.id, {
-                  'bytesSent': hasPipe ? message.params['data'].length ~/ 2 : 0
+                  'bytesSent':
+                      hasPipe ? (paramsMap['data'] as String).length ~/ 2 : 0
                 }));
               } else {
                 sendMessage(ErrorResponse(message.id,

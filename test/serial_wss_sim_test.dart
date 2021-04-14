@@ -43,6 +43,7 @@ void testMain(WebSocketChannelFactory factory) {
     });
 
     test('master_slave', () async {
+      // Serial.debug.on = true;
       var server = await SerialServer.start(factory.server, port: 0);
 
       var service = SerialWssClientService(factory.client, url: server.url);
