@@ -31,8 +31,8 @@ dev_dependencies:
       path: test_menu_io
   dev_test: '>=0.13.2-dev.3'
 dependency_overrides:
-#  tekartik_serial_wss_client:
-#    path: ../serial_wss_client.dart
+  tekartik_serial_wss_client:
+    path: ../serial_wss_client.dart
 
 executables:
   serial_wss_sim:

@@ -180,7 +180,7 @@ class SerialServerConnection {
                 }
                 sendMessage(Response(message.id, {
                   'bytesSent':
-                      hasPipe ? (paramsMap['data'] as List).length ~/ 2 : 0
+                      hasPipe ? (paramsMap['data'] as String).length ~/ 2 : 0
                 }));
               } else {
                 sendMessage(ErrorResponse(message.id,
