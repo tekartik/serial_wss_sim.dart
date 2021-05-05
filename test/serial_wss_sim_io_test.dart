@@ -1,13 +1,11 @@
-@TestOn('vm')
-
-// Copyright (c) 2017, alex. All rights reserved. Use of this source code
-// is governed by a BSD-style license that can be found in the LICENSE file.
-import 'package:tekartik_web_socket_io/web_socket_io.dart';
 import 'package:tekartik_serial_wss_client/constant.dart';
 import 'package:tekartik_serial_wss_client/serial_wss_client.dart';
 import 'package:tekartik_serial_wss_client/service/serial_wss_client_service.dart';
 import 'package:tekartik_serial_wss_sim/serial_wss_sim.dart';
+@TestOn('vm')
+import 'package:tekartik_web_socket_io/web_socket_io.dart';
 import 'package:test/test.dart';
+
 import 'serial_wss_sim_test.dart';
 
 void main() {
